@@ -1,0 +1,12 @@
+{
+  "name": "prompt-to-proof",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "stream": "tsx scripts/stream.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0",
+    "typescript": "^5.5.0"
+  }
+}
