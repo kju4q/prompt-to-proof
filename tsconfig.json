@@ -4,6 +4,9 @@
     "module": "ES2022",
     "moduleResolution": "Bundler",
     "strict": true,
-    "skipLibCheck": true
-  }
+    "skipLibCheck": true,
+    "types": ["node"],
+    "lib": ["es2022"]
+  },
+  "include": ["**/*.ts"]
 }
