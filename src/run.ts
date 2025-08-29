@@ -4,6 +4,7 @@ import vm from "node:vm";
 import crypto from "crypto";
 import { z } from "zod";
 import { startChain, appendRecord } from "./attest";
+import { get_encoding, type Tiktoken } from "@dqbd/tiktoken";
 
 // --- env & guards ---
 const BASE_URL = process.env.BASE_URL || "https://api.openai.com/v1";
@@ -32,6 +33,16 @@ const systemPreamble =
   "You are a helpful coding assistant. Return ONLY a JavaScript function that solves the task. " +
   "No explanations. Wrap the solution in a single ```javascript code block.";
 
+// choose a reasonable tokenizer encoding for counting tokens (override with TOKENIZER env)
+function chooseEncoding(model: string): "o200k_base" | "cl100k_base" {
+  if (/gpt-4o/i.test(model) || /-4o/i.test(model)) return "o200k_base";
+  return "cl100k_base";
+}
+const encName =
+  (process.env.TOKENIZER as "o200k_base" | "cl100k_base") ||
+  chooseEncoding(MODEL);
+const enc: Tiktoken = get_encoding(encName);
+
 // --- attestation setup ---
 const runId = String(Date.now());
 fs.mkdirSync("results", { recursive: true });
@@ -52,6 +63,7 @@ async function chat(userPrompt: string) {
       { role: "user", content: userPrompt },
     ],
   };
+  const t0 = Date.now();
   const res = await fetch(`${BASE_URL.replace(/\/+$/, "")}/chat/completions`, {
     method: "POST",
     headers: {
@@ -60,9 +72,11 @@ async function chat(userPrompt: string) {
     },
     body: JSON.stringify(body),
   });
+  const t1 = Date.now();
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
   const json: any = await res.json();
-  return String(json.choices?.[0]?.message?.content || "");
+  const content = String(json.choices?.[0]?.message?.content || "");
+  return { content, latency_ms: t1 - t0 };
 }
 
 // --- code extraction & sandboxed testing ---
@@ -70,7 +84,6 @@ function extractCode(md: string) {
   const m = md.match(/```(?:javascript|js)?\s*([\s\S]*?)```/i);
   return (m ? m[1] : md).trim();
 }
-
 function runInSandbox(code: string, testExpr: string): boolean {
   const ctx: any = { console: { log: () => {} } };
   vm.createContext(ctx);
@@ -85,14 +98,23 @@ function runInSandbox(code: string, testExpr: string): boolean {
 const startedAt = new Date().toISOString();
 const results: any[] = [];
 let passCount = 0;
+let totalInputTokens = 0;
+let totalOutputTokens = 0;
+let totalLatencyMs = 0;
 
 for (const t of tasks) {
-  const completion = await chat(t.prompt);
-  const code = extractCode(completion);
+  const { content, latency_ms } = await chat(t.prompt);
+  const code = extractCode(content);
+
+  // token counts (simple, practical): user prompt tokens + returned code tokens
+  const inputTokens = enc.encode(t.prompt).length;
+  const outputTokens = enc.encode(code).length;
+  totalInputTokens += inputTokens;
+  totalOutputTokens += outputTokens;
+  totalLatencyMs += latency_ms;
 
   let allPass = true;
   const verdicts: { test: string; pass: boolean }[] = [];
-
   for (const test of t.tests) {
     let ok = false;
     try {
@@ -103,19 +125,20 @@ for (const t of tasks) {
     verdicts.push({ test, pass: ok });
     if (!ok) allPass = false;
   }
-
   if (allPass) passCount++;
 
-  // record per-task result in summary
+  // record per-task
   results.push({
     id: t.id,
     prompt_sha256: hash(t.prompt),
     code_sha256: hash(code),
     pass: allPass,
+    latency_ms,
+    tokens: { input: inputTokens, output: outputTokens },
     verdicts,
   });
 
-  // append attestation record (tamper-evident)
+  // attestation
   prevHash = appendRecord(
     attestPath,
     {
@@ -132,10 +155,15 @@ for (const t of tasks) {
     idx++
   );
 
-  process.stdout.write(`• ${t.id}: ${allPass ? "PASS" : "fail"}\n`);
+  process.stdout.write(
+    `• ${t.id}: ${
+      allPass ? "PASS" : "fail"
+    } (${latency_ms} ms, in:${inputTokens}, out:${outputTokens})\n`
+  );
 }
 
 // --- write summary ---
+enc.free();
 const summary = {
   run_id: runId,
   startedAt,
@@ -143,7 +171,17 @@ const summary = {
   model: MODEL,
   sampling: { temperature: 0, top_p: 1 },
   dataset_sha256,
-  totals: { pass1: passCount, total: tasks.length },
+  totals: {
+    pass1: passCount,
+    total: tasks.length,
+    latency_ms: totalLatencyMs,
+    tokens: {
+      input: totalInputTokens,
+      output: totalOutputTokens,
+      total: totalInputTokens + totalOutputTokens,
+    },
+  },
+  tokenizer: encName,
   results,
   attestation_file: attestPath,
 };
