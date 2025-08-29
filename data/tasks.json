@@ -1,0 +1,63 @@
+[
+  {
+    "id": "reverse-string",
+    "prompt": "Write a JS function `reverse(s)` that returns the reversed string.",
+    "tests": ["reverse('abc')==='cba'", "reverse('')===''"]
+  },
+  {
+    "id": "is-prime",
+    "prompt": "Write a JS function `isPrime(n)` that returns true if n is prime, false otherwise.",
+    "tests": ["isPrime(2)===true", "isPrime(15)===false", "isPrime(17)===true"]
+  },
+  {
+    "id": "valid-parens",
+    "prompt": "Write `validParens(s)` that returns true if ()[]{} are balanced.",
+    "tests": ["validParens('([])')===true", "validParens('([)]')===false"]
+  },
+  {
+    "id": "fizzbuzz",
+    "prompt": "Write `fizzbuzz(n)` that returns an array of 1..n with multiples of 3->'Fizz', 5->'Buzz', both->'FizzBuzz'.",
+    "tests": [
+      "JSON.stringify(fizzbuzz(5))===JSON.stringify([1,2,'Fizz',4,'Buzz'])",
+      "JSON.stringify(fizzbuzz(15)).length>0"
+    ]
+  },
+  {
+    "id": "sum-unique",
+    "prompt": "Write `sumUnique(arr)` that returns the sum of numbers that appear exactly once.",
+    "tests": ["sumUnique([1,2,2,3])===4", "sumUnique([])===0"]
+  },
+  {
+    "id": "palindrome",
+    "prompt": "Write `isPalindrome(s)` that returns true if s reads the same forwards and backwards (ignore case, alphanumerics only).",
+    "tests": [
+      "isPalindrome('A man, a plan, a canal: Panama')===true",
+      "isPalindrome('race a car')===false"
+    ]
+  },
+  {
+    "id": "two-sum",
+    "prompt": "Write `twoSum(nums,target)` that returns indices [i,j] with nums[i]+nums[j]==target or [] if none (i<j).",
+    "tests": ["JSON.stringify(twoSum([2,7,11,15],9))===JSON.stringify([0,1])"]
+  },
+  {
+    "id": "anagrams",
+    "prompt": "Write `areAnagrams(a,b)` that returns true if a and b are anagrams (ignore spaces/punctuation, case-insensitive).",
+    "tests": [
+      "areAnagrams('listen','silent')===true",
+      "areAnagrams('rat','car')===false"
+    ]
+  },
+  {
+    "id": "uniq",
+    "prompt": "Write `uniq(arr)` that returns a new array with duplicates removed, preserving first occurrence.",
+    "tests": ["JSON.stringify(uniq([1,1,2,3,3]))===JSON.stringify([1,2,3])"]
+  },
+  {
+    "id": "flatten-1",
+    "prompt": "Write `flatten1(arr)` that flattens a one-level nested array (e.g., [1,[2,3],4] -> [1,2,3,4]).",
+    "tests": [
+      "JSON.stringify(flatten1([1,[2,3],4]))===JSON.stringify([1,2,3,4])"
+    ]
+  }
+]
