@@ -12,3 +12,8 @@ Outputs:
 
 - `manifest.json` – model, tokenizer, seed, sampling, prompt hash
 - `results/run-*.json` – TTFT, approx tokens/sec, output text
+
+| temp | top_p | TTFT (ms) | tokens/sec | note                    |
+| ---: | ----: | --------: | ---------: | ----------------------- |
+|  0.0 |   1.0 |     ~1205 |     ~57.25 | baseline, deterministic |
+|  0.8 |   0.9 |      ~766 |     ~31.62 | creative phrasing       |

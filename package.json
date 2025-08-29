@@ -10,5 +10,9 @@
     "dotenv": "^17.2.1",
     "tsx": "^4.0.0",
     "typescript": "^5.5.0"
+  },
+  "dependencies": {
+    "@dqbd/tiktoken": "^1.0.22",
+    "eventsource-parser": "^3.0.5"
   }
 }
