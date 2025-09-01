@@ -17,3 +17,16 @@ Outputs:
 | ---: | ----: | --------: | ---------: | ----------------------- |
 |  0.0 |   1.0 |     ~1205 |     ~57.25 | baseline, deterministic |
 |  0.8 |   0.9 |      ~766 |     ~31.62 | creative phrasing       |
+
+### Results (v0.2 — 16 tasks)
+
+| setting       | pass@1 | pass@5 | total | median task latency | avg tokens (in/out) |
+| ------------- | ------ | ------ | ----- | ------------------- | ------------------- |
+| temp=0, k=1   | ?/?    | —      | 16    | ~? ms               | ~? / ~?             |
+| temp=0.7, k=5 | —      | ?/?    | 16    | ~? ms               | ~? / ~?             |
+
+Notes:
+
+- Harder tasks where k>1 helped: {ids…}
+- Tokens/latency climbed on: {ids…}
+- Next tweaks: {e.g., add pass@k reporting per task, or stricter tests}
