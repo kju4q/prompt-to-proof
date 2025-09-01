@@ -116,12 +116,15 @@ for (const t of tasks) {
   const attempts: any[] = [];
   let solved = false;
   let chosenCode = "";
+  let chosenAttemptIdx: number | null = null; // <— add
   let firstAttemptPass = false;
+  let lastCode = ""; // <— add
 
   for (let a = 0; a < K_ATTEMPTS; a++) {
     const seed = process.env.SEED ? Number(process.env.SEED) + a : undefined;
     const { content, latency_ms } = await chat(t.prompt, seed);
     const code = extractCode(content);
+    lastCode = code; // <— track the last generated code
 
     const inputTokens = enc.encode(t.prompt).length;
     const outputTokens = enc.encode(code).length;
@@ -154,6 +157,7 @@ for (const t of tasks) {
     if (allPass) {
       solved = true;
       chosenCode = code;
+      chosenAttemptIdx = a + 1; // <— record which attempt won
       break;
     }
   }
@@ -161,20 +165,21 @@ for (const t of tasks) {
   if (firstAttemptPass) pass1++;
   if (solved) passk++;
 
-  // pick code hash: winning attempt’s code if solved; otherwise last attempt’s
-  const codeHash = hash(chosenCode || extractCode(attempts.at(-1) ? "" : ""));
+  const finalCode = chosenCode || lastCode; // <— pick winner or last try
+  const finalCodeHash = hash(finalCode || ""); // <— real provenance
 
-  // summary record
   results.push({
     id: t.id,
     prompt_sha256: hash(t.prompt),
     pass1: firstAttemptPass,
     passk: solved,
+    solved_attempt_idx: chosenAttemptIdx, // <— new
+    code_sha256: finalCodeHash, // <— new
     attempts,
   });
 
-  // attestation (one per task, final verdict)
   prevHash = appendRecord(
+    // attest with actual code hash
     attestPath,
     {
       run_id: runId,
@@ -182,7 +187,7 @@ for (const t of tasks) {
       model: MODEL,
       dataset_sha256,
       prompt_sha256: hash(t.prompt),
-      code_sha256: chosenCode ? hash(chosenCode) : "none",
+      code_sha256: finalCodeHash, // <— use finalCodeHash always
       pass: solved,
       timestamp: new Date().toISOString(),
     },
@@ -225,7 +230,11 @@ const summary = {
 
 const out = `results/eval-${runId}.json`;
 fs.writeFileSync(out, JSON.stringify(summary, null, 2));
-console.log(
-  `\npass@1: ${pass1}/${tasks.length} | pass@${K_ATTEMPTS}: ${passk}/${tasks.length}`
-);
+if (K_ATTEMPTS === 1) {
+  console.log(`\npass@1: ${pass1}/${tasks.length}`);
+} else {
+  console.log(
+    `\npass@1: ${pass1}/${tasks.length} | pass@${K_ATTEMPTS}: ${passk}/${tasks.length}`
+  );
+}
 console.log(`Saved: ${out}\nAttestations: ${attestPath}`);

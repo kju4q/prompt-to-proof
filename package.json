@@ -6,7 +6,8 @@
     "stream": "tsx scripts/stream.ts",
     "eval": "tsx src/run.ts",
     "eval:k5": "K_ATTEMPTS=5 EVAL_TEMPERATURE=0.7 EVAL_TOP_P=0.95 tsx src/run.ts",
-    "verify": "tsx src/verify.ts"
+    "verify": "tsx src/verify.ts",
+    "summarize": "tsx src/summarize.ts"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
