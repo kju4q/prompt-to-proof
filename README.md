@@ -13,7 +13,6 @@ Open, practical tools to understand LLM **streaming & sampling** and run a **rep
 - A model endpoint:
   - OpenAI-compatible hosted API (e.g., OpenAI), or
   - Local OpenAI-compatible server (vLLM / llama.cpp)
-- A `.env` file (see below). **Do not commit it.**
 
 ---
 
