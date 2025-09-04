@@ -1,6 +1,6 @@
 # prompt-to-proof
 
-Open, practical tools to understand LLM **streaming & sampling** and run a **reproducible** mini-eval with **hash-attested** results.
+Open, practical tools to understand LLM streaming & sampling and run a reproducible mini-eval with hash-attested results.
 
 > Measure → Evaluate → Prove.  
 > Streaming logger (TTFT & tokens/sec) + coding eval (pass@1 / pass@k) + tamper-evident receipts.
